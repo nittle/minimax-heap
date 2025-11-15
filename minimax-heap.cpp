@@ -34,8 +34,45 @@ class MinimaxHeap {
             }
     }
 
+    void trickleDown(int i) {
+        // current layer - layer of the current element
+        int currLayer = layer(i);
+        int lastLayer = layer(size - 1);
+
+        // If element is on the last layer then it doesnt have children
+        if(currLayer == lastLayer) return;
+
+        int swappedWith = -1;
+        int leftChild = left(i);
+        int rightChild = right(i);
+
+        if(currLayer % 2 == 0) { // even layer
+            if(harr[i] > harr[leftChild]) {
+                    swappedWith = leftChild;
+                    swap(harr[i], harr[leftChild]);
+                }
+            if(harr[i] > harr[rightChild]) {
+                swappedWith = rightChild;
+                swap(harr[i], harr[rightChild]);
+            }
+        } else { // odd
+            if(harr[i] < harr[leftChild]) {
+                swappedWith = leftChild;
+                swap(harr[i], harr[leftChild]);
+            }
+            if(harr[i] < harr[rightChild]) {
+                swappedWith = rightChild;
+                swap(harr[i], harr[rightChild]);
+            }
+        }
+
+        if(swappedWith != -1)  {
+            trickleUp(swappedWith);
+        }
+    }
+
     void heapify() {
-        int n = harr.size();
+        int n = size;
 
         int bottomLayer = layer(harr[n-1]);
 
@@ -49,24 +86,28 @@ class MinimaxHeap {
         
     }
     public:
-    vector<int> harr;
+    int* harr;
+    unsigned capacity;
+    unsigned size;
+
+    MinimaxHeap(unsigned size) {
+        harr = new int[size];
+        capacity = size;
+        size = 0;
+    }
+
+    ~MinimaxHeap() {
+        delete [] harr;
+    }
+
+    bool empty() {
+        return !size;
+    }
 
     int layer(int i) {
         // __countl_zero() - counts the amount of bits on the left side of number
         // returns the position of the most significant bit
         return sizeof(int) * 8 - __countl_zero<unsigned>(i+1);
-
-        // Until parent is not zero, searches next parent and increases layer
-        // Goes from the bottom layer to the first and on each passed level increments layer variable
-        // if(i == 0) return 1;
-
-        // int layer = 2;
-        // int par = parent(i);
-        // while(par != 0) {
-        //     layer++;
-        //     par = parent(par);
-        // }
-        // return layer;
     }
     int parent(int i) {
         return (i - 1) / 2;
@@ -90,38 +131,44 @@ class MinimaxHeap {
 
     // }
     void insert(int val) {
-        if(harr.empty()) {
-            harr.push_back(val);
+        if(empty()) {
+            harr[0] = val;
         } else {
-            harr.push_back(val);
-            int i = harr.size() - 1;
+            int ind = size;
+            harr[ind] = val;
+            int i = ind;
             trickleUp(i);
         }
+        size++;
     }
     void extract(int i) {
-        harr.erase(harr.begin() + i);
-        heapify();
+        swap(harr[i], harr[size-1]);
+        size--;
+        trickleUp(harr[i]);
+        trickleDown(harr[i]);
     } 
 };
 
-void printVector(vector<int> vect) {
-    for (int el : vect) {
-        cout << el << " ";
+void printArr(int* arr, int size) {
+    for(int i = 0; i < size; i++) {
+        cout << arr[i] << " ";
     }
     cout << endl;
 }
 
 int main() {
-    MinimaxHeap* heap = new MinimaxHeap();
+    const int capacity = 100;
+    MinimaxHeap* heap = new MinimaxHeap(capacity);
 
     vector<int> arr = {9, 12, 15, 20, 4, 7, 45, 32, 14, 10, 22, 2};
     for(int el : arr) {
         heap->insert(el);
     }
+    
+    printArr(heap->harr, heap->size);
+    cout << heap->size << endl;
 
-    printVector(heap->harr);
-
-    heap->extractMin();
-    printVector(heap->harr);
+    heap->extract(2);
+    printArr(heap->harr, heap->size);
     return 0;
 }
